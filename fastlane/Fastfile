@@ -40,7 +40,7 @@ platform :ios do
 
     get_certificates(
       api_key: api_key,
-      keychain_name: "ci_keychain",
+      keychain_path: "ci_keychain",
       keychain_password: "ci_password"
     )
 
