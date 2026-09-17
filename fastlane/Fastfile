@@ -31,7 +31,6 @@ platform :ios do
     )
 
     produce(
-      api_key: api_key,
       app_identifier: "com.wvrousseletp.Rotas",
       app_name: "Rotas",
       language: "English",
