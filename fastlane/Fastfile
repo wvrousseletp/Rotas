@@ -24,20 +24,28 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
-    key_path = api_key.key_filepath
-    UI.message("Fastlane generated API Key path: #{key_path}")
+    UI.message("API Key object: #{api_key.inspect}")
+
+    key_path = if api_key.is_a?(Hash)
+      api_key[:key_filepath] || api_key["key_filepath"] || api_key[:filepath] || api_key["filepath"]
+    elsif api_key.respond_to?(:key_filepath)
+      api_key.key_filepath
+    else
+      nil
+    end
+
+    UI.message("Extracted API Key path: #{key_path.inspect}")
+
+    xcargs_str = key_path ? "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_path}" : "-allowProvisioningUpdates"
 
     build_app(
       project: "Rotas.xcodeproj",
       scheme: "Rotas",
       export_method: "app-store",
       clean: true,
-      xcargs: "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_path}",
+      xcargs: xcargs_str,
       export_options: {
-        allowProvisioningUpdates: true,
-        authenticationKeyID: key_id,
-        authenticationKeyIssuerID: issuer_id,
-        authenticationKeyPath: key_path
+        allowProvisioningUpdates: true
       },
       output_directory: "./build",
       output_name: "Rotas.ipa"
