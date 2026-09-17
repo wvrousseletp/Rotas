@@ -77,6 +77,8 @@ platform :ios do
       end
     rescue => e
       UI.error("App setup note: #{e.message}")
+    end
+
     xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}"
 
     build_app(
