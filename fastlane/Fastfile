@@ -144,7 +144,10 @@ platform :ios do
     end
 
     target_profile = lane_context[:CURRENT_PROF_UUID] || lane_context[:CURRENT_PROF_NAME] || "Rotas AppStore Profile"
-    xcargs_str = "CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=\"Apple Distribution\" PROVISIONING_PROFILE_SPECIFIER=\"#{target_profile}\" DEVELOPMENT_TEAM=\"#{ENV['DEVELOPMENT_TEAM'] || 'CR85ZZCSUA'}\""
+    team_id = (b_id && b_id.seed_id && !b_id.seed_id.empty?) ? b_id.seed_id : (ENV['DEVELOPMENT_TEAM'] || 'CR85ZZCSUA')
+    UI.message("Using Team ID: #{team_id} for code signing")
+
+    xcargs_str = "CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=\"Apple Distribution\" PROVISIONING_PROFILE_SPECIFIER=\"#{target_profile}\" DEVELOPMENT_TEAM=\"#{team_id}\""
 
     build_app(
       project: "Rotas.xcodeproj",
@@ -155,6 +158,7 @@ platform :ios do
       export_options: {
         method: "app-store",
         signingStyle: "manual",
+        teamID: team_id,
         provisioningProfiles: {
           "com.wvrousseletp.Rotas" => target_profile
         }
