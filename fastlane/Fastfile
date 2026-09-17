@@ -16,7 +16,6 @@ platform :ios do
     key_filepath = File.expand_path("~/AuthKey_#{key_id}.p8")
     decoded_p8 = Base64.decode64(key_content_b64.gsub(/\s+/, ''))
     File.binwrite(key_filepath, decoded_p8)
-    UI.message("Wrote decoded AuthKey p8 PEM file (#{decoded_p8.bytesize} bytes) to: #{key_filepath}")
 
     api_key = app_store_connect_api_key(
       key_id: key_id,
@@ -31,17 +30,28 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
-    xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath} CODE_SIGN_IDENTITY=\"Apple Distribution\" DEVELOPMENT_TEAM=\"CR85ZZCSUA\""
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "com.wvrousseletp.Rotas",
+      development: true,
+      ignore_profiles_with_different_name: true
+    )
+
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "com.wvrousseletp.Rotas",
+      development: false,
+      ignore_profiles_with_different_name: true
+    )
 
     build_app(
       project: "Rotas.xcodeproj",
       scheme: "Rotas",
       export_method: "app-store",
       clean: true,
-      xcargs: xcargs_str,
+      xcargs: "-allowProvisioningUpdates",
       export_options: {
-        allowProvisioningUpdates: true,
-        signingStyle: "automatic"
+        allowProvisioningUpdates: true
       },
       output_directory: "./build",
       output_name: "Rotas.ipa"
