@@ -30,11 +30,31 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
-    produce(
+    create_keychain(
+      name: "ci_keychain",
+      password: "ci_password",
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600
+    )
+
+    ensure_app_exists(
+      api_key: api_key,
       app_identifier: "com.wvrousseletp.Rotas",
-      app_name: "Rotas",
-      language: "English",
-      sku: "com.wvrousseletp.Rotas"
+      app_name: "Rotas"
+    )
+
+    get_certificates(
+      api_key: api_key,
+      development: false,
+      keychain_path: lane_context[SharedValues::KEYCHAIN_PATH]
+    )
+
+    get_provisioning_profile(
+      api_key: api_key,
+      app_identifier: "com.wvrousseletp.Rotas",
+      development: false,
+      skip_certificate_verification: true
     )
 
     xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}"
