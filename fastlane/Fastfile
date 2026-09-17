@@ -47,7 +47,8 @@ platform :ios do
         bundle_id = Spaceship::ConnectAPI.post_bundle_id(
           name: "Rotas",
           identifier: "com.wvrousseletp.Rotas",
-          platform: "IOS"
+          platform: "IOS",
+          seed_id: ENV["DEVELOPMENT_TEAM"] || "CR85ZZCSUA"
         )
         UI.success("Successfully created Bundle ID: #{bundle_id.identifier}")
       else
@@ -80,8 +81,7 @@ platform :ios do
 
     get_certificates(
       api_key: api_key,
-      development: false,
-      keychain_path: lane_context[SharedValues::KEYCHAIN_PATH]
+      development: false
     )
 
     get_provisioning_profile(
