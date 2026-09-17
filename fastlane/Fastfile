@@ -1,30 +1,27 @@
-default_platform(:ios)
+require "base64"
 
-def format_pem(key_str)
-  clean = key_str.to_s
-                 .gsub("-----BEGIN PRIVATE KEY-----", "")
-                 .gsub("-----END PRIVATE KEY-----", "")
-                 .gsub(/\s+/, "")
-  body = clean.scan(/.{1,64}/).join("\n")
-  "-----BEGIN PRIVATE KEY-----\n#{body}\n-----END PRIVATE KEY-----\n"
-end
+default_platform(:ios)
 
 platform :ios do
   desc "Push a new beta build to TestFlight using App Store Connect API Key"
   lane :beta do
     key_id = ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"]
     issuer_id = ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"]
-    key_content = ENV["APP_STORE_CONNECT_API_KEY_KEY"]
+    key_content_b64 = ENV["APP_STORE_CONNECT_API_KEY_KEY"]
 
-    if key_id.to_s.empty? || issuer_id.to_s.empty? || key_content.to_s.empty?
+    if key_id.to_s.empty? || issuer_id.to_s.empty? || key_content_b64.to_s.empty?
       UI.user_error!("[CONFIGURAÇÃO NECESSÁRIA] As credenciais da App Store Connect API Key não foram encontradas no GitHub Secrets.\nPor favor, adicione os secrets: APP_STORE_CONNECT_API_KEY_KEY_ID, APP_STORE_CONNECT_API_KEY_ISSUER_ID e APP_STORE_CONNECT_API_KEY_KEY.")
     end
+
+    key_filepath = File.expand_path("~/AuthKey_#{key_id}.p8")
+    raw_key = Base64.decode64(key_content_b64.gsub(/\s+/, ''))
+    File.binwrite(key_filepath, raw_key)
+    UI.message("Wrote exact AuthKey p8 file (#{raw_key.bytesize} bytes) to: #{key_filepath}")
 
     api_key = app_store_connect_api_key(
       key_id: key_id,
       issuer_id: issuer_id,
-      key_content: key_content,
-      is_key_content_base64: true,
+      key_filepath: key_filepath,
       in_house: false
     )
 
@@ -33,12 +30,7 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
-    key_path = File.expand_path("~/AuthKey_#{key_id}.p8")
-    pem_content = format_pem(api_key[:key])
-    File.write(key_path, pem_content)
-    UI.message("Wrote formatted PEM API key to file: #{key_path}")
-
-    xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_path}"
+    xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}"
 
     build_app(
       project: "Rotas.xcodeproj",
@@ -50,7 +42,7 @@ platform :ios do
         allowProvisioningUpdates: true,
         authenticationKeyID: key_id,
         authenticationKeyIssuerID: issuer_id,
-        authenticationKeyPath: key_path
+        authenticationKeyPath: key_filepath
       },
       output_directory: "./build",
       output_name: "Rotas.ipa"
