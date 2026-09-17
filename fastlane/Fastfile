@@ -79,11 +79,31 @@ platform :ios do
       UI.error("App setup note: #{e.message}")
     end
 
+    # Check existing iOS Distribution certificates; if limit reached, revoke the oldest one so Fastlane cert can create a new one with private key
+    begin
+      all_certs = Spaceship::ConnectAPI::Certificate.all
+      dist_certs = all_certs.select { |c| c.certificate_type.to_s.include?("DISTRIBUTION") || c.certificate_type.to_s.include?("IOS_DISTRIBUTION") }
+      UI.message("Found #{dist_certs.count} iOS Distribution certificate(s) on Apple Developer Portal.")
+      if dist_certs.count >= 2
+        oldest_cert = dist_certs.sort_by { |c| c.expiration_date || "" }.first
+        UI.important("Distribution certificate limit reached. Revoking oldest certificate (#{oldest_cert.id}) to allow CI certificate creation...")
+        oldest_cert.delete!
+        UI.success("Successfully revoked certificate: #{oldest_cert.id}")
+      end
+    rescue => e
+      UI.error("Certificate management note: #{e.message}")
+    end
+
+    get_certificates(
+      api_key: api_key,
+      development: false
+    )
+
     get_provisioning_profile(
       api_key: api_key,
       app_identifier: "com.wvrousseletp.Rotas",
       development: false,
-      skip_certificate_verification: true
+      force: true
     )
 
     xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}"
