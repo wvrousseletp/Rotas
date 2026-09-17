@@ -172,8 +172,6 @@ platform :ios do
       scheme: "Rotas",
       export_method: "app-store",
       clean: true,
-      keychain_path: keychain_db_path,
-      keychain_password: "ci_password",
       xcargs: xcargs_str,
       export_options: {
         method: "app-store",
