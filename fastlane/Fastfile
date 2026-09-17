@@ -64,9 +64,9 @@ platform :ios do
     # Ensure Bundle ID, App and Provisioning Profile exist on Developer Portal and App Store Connect using API Key
     b_id = nil
     begin
-      b_id = Spaceship::ConnectAPI::BundleId.all(filter: { identifier: "com.wvrousseletp.Rotas" }).first
+      b_id = Spaceship::ConnectAPI::BundleId.all(limit: 200).find { |b| b.identifier == "com.wvrousseletp.Rotas" }
     rescue => e
-      UI.error("BundleId filter note: #{e.message}")
+      UI.error("BundleId list note: #{e.message}")
     end
 
     if b_id.nil?
@@ -75,13 +75,12 @@ platform :ios do
         b_id = Spaceship::ConnectAPI.post_bundle_id(
           name: "Rotas",
           identifier: "com.wvrousseletp.Rotas",
-          platform: "UNIVERSAL",
-          seed_id: ENV["DEVELOPMENT_TEAM"] || "CR85ZZCSUA"
+          platform: "UNIVERSAL"
         )
         UI.success("Successfully created Bundle ID: #{b_id.identifier}")
       rescue => e
         UI.error("post_bundle_id note: #{e.message}")
-        b_id = Spaceship::ConnectAPI::BundleId.all.find { |b| b.identifier == "com.wvrousseletp.Rotas" }
+        b_id = Spaceship::ConnectAPI::BundleId.all(limit: 200).find { |b| b.identifier == "com.wvrousseletp.Rotas" }
       end
     end
 
