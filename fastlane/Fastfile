@@ -30,10 +30,12 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
-    get_provisioning_profile(
+    produce(
       api_key: api_key,
       app_identifier: "com.wvrousseletp.Rotas",
-      skip_certificate_verification: true
+      app_name: "Rotas",
+      language: "English",
+      sku: "com.wvrousseletp.Rotas"
     )
 
     xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}"
