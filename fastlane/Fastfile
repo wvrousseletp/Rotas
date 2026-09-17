@@ -114,18 +114,23 @@ platform :ios do
 
         if cert_obj
           all_profiles = Spaceship::ConnectAPI::Profile.all(limit: 200)
-          prof = all_profiles.find { |p| p.bundle_id && p.bundle_id.id == b_id.id && p.profile_type.to_s.include?("APP_STORE") }
+          prof = all_profiles.find do |p|
+            p_bid = p.bundle_id.respond_to?(:id) ? p.bundle_id.id : p.bundle_id.to_s
+            p_bid == b_id.id && p.profile_type.to_s.include?("APP_STORE")
+          end
+
           if prof.nil?
             UI.message("Creating App Store Provisioning Profile for com.wvrousseletp.Rotas...")
-            prof = Spaceship::ConnectAPI::Profile.create(
+            res_prof = Spaceship::ConnectAPI::Profile.create(
               name: "Rotas AppStore Profile",
               profile_type: "IOS_APP_STORE",
               bundle_id_id: b_id.id,
               certificate_ids: [cert_obj.id]
             )
-            UI.success("Created Provisioning Profile: #{prof.name}")
+            prof = res_prof.respond_to?(:to_models) ? res_prof.to_models.first : res_prof
+            UI.success("Created Provisioning Profile: #{prof.name} (#{prof.uuid})")
           else
-            UI.message("Provisioning Profile found: #{prof.name}")
+            UI.message("Provisioning Profile found: #{prof.name} (#{prof.uuid})")
           end
 
           if prof && prof.profile_content
@@ -143,7 +148,17 @@ platform :ios do
       end
     end
 
-    target_profile = lane_context[:CURRENT_PROF_UUID] || lane_context[:CURRENT_PROF_NAME] || "Rotas AppStore Profile"
+    begin
+      get_provisioning_profile(
+        api_key: api_key,
+        app_identifier: "com.wvrousseletp.Rotas",
+        development: false
+      )
+    rescue => e
+      UI.error("sigh fallback note: #{e.message}")
+    end
+
+    target_profile = lane_context[SharedValues::SIGH_UDID] || lane_context[:CURRENT_PROF_UUID] || lane_context[SharedValues::SIGH_NAME] || lane_context[:CURRENT_PROF_NAME] || "Rotas AppStore Profile"
     team_id = (b_id && b_id.seed_id && !b_id.seed_id.empty?) ? b_id.seed_id : (ENV['DEVELOPMENT_TEAM'] || 'CR85ZZCSUA')
     UI.message("Using Team ID: #{team_id} for code signing")
 
