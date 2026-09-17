@@ -75,7 +75,8 @@ platform :ios do
         b_id = Spaceship::ConnectAPI.post_bundle_id(
           name: "Rotas",
           identifier: "com.wvrousseletp.Rotas",
-          platform: "UNIVERSAL"
+          platform: "UNIVERSAL",
+          seed_id: nil
         )
         UI.success("Successfully created Bundle ID: #{b_id.identifier}")
       rescue => e
