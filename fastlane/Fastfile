@@ -1,5 +1,14 @@
 default_platform(:ios)
 
+def format_pem(key_str)
+  clean = key_str.to_s
+                 .gsub("-----BEGIN PRIVATE KEY-----", "")
+                 .gsub("-----END PRIVATE KEY-----", "")
+                 .gsub(/\s+/, "")
+  body = clean.scan(/.{1,64}/).join("\n")
+  "-----BEGIN PRIVATE KEY-----\n#{body}\n-----END PRIVATE KEY-----\n"
+end
+
 platform :ios do
   desc "Push a new beta build to TestFlight using App Store Connect API Key"
   lane :beta do
@@ -25,8 +34,9 @@ platform :ios do
     )
 
     key_path = File.expand_path("~/AuthKey_#{key_id}.p8")
-    File.write(key_path, api_key[:key])
-    UI.message("Wrote API key to file: #{key_path}")
+    pem_content = format_pem(api_key[:key])
+    File.write(key_path, pem_content)
+    UI.message("Wrote formatted PEM API key to file: #{key_path}")
 
     xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_path}"
 
