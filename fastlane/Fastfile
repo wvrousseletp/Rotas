@@ -38,11 +38,45 @@ platform :ios do
       timeout: 3600
     )
 
-    ensure_app_exists(
-      api_key: api_key,
-      app_identifier: "com.wvrousseletp.Rotas",
-      app_name: "Rotas"
-    )
+    # Ensure Bundle ID and App exist on Developer Portal and App Store Connect using API Key
+    bundle_id = nil
+    begin
+      bundle_id = Spaceship::ConnectAPI::BundleId.find("com.wvrousseletp.Rotas")
+      if bundle_id.nil?
+        UI.message("Creating Bundle ID com.wvrousseletp.Rotas on Developer Portal...")
+        bundle_id = Spaceship::ConnectAPI.post_bundle_id(
+          name: "Rotas",
+          identifier: "com.wvrousseletp.Rotas",
+          platform: "IOS"
+        )
+        UI.success("Successfully created Bundle ID: #{bundle_id.identifier}")
+      else
+        UI.message("Bundle ID com.wvrousseletp.Rotas exists.")
+      end
+    rescue => e
+      UI.error("Bundle ID setup note: #{e.message}")
+    end
+
+    begin
+      app = Spaceship::ConnectAPI::App.find("com.wvrousseletp.Rotas")
+      if app.nil?
+        UI.message("Creating App Rotas on App Store Connect...")
+        bundle_id_obj = bundle_id || Spaceship::ConnectAPI::BundleId.find("com.wvrousseletp.Rotas")
+        if bundle_id_obj
+          app = Spaceship::ConnectAPI.post_app(
+            name: "Rotas",
+            primary_locale: "en-US",
+            sku: "com.wvrousseletp.Rotas",
+            bundle_id_id: bundle_id_obj.id
+          )
+          UI.success("Successfully created App: #{app.name}")
+        end
+      else
+        UI.message("App Rotas exists on App Store Connect.")
+      end
+    rescue => e
+      UI.error("App setup note: #{e.message}")
+    end
 
     get_certificates(
       api_key: api_key,
