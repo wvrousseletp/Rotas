@@ -96,7 +96,8 @@ platform :ios do
 
       if cert_obj
         profiles = Spaceship::ConnectAPI::Profile.all(filter: { bundleId: b_id.id, profileType: "IOS_APP_STORE" })
-        if profiles.empty?
+        prof = profiles.first
+        if prof.nil?
           UI.message("Creating App Store Provisioning Profile for com.wvrousseletp.Rotas...")
           prof = Spaceship::ConnectAPI::Profile.create(
             name: "Rotas AppStore Profile",
@@ -106,14 +107,22 @@ platform :ios do
           )
           UI.success("Created Provisioning Profile: #{prof.name}")
         else
-          UI.message("Provisioning Profile found: #{profiles.first.name}")
+          UI.message("Provisioning Profile found: #{prof.name}")
+        end
+
+        if prof && prof.profile_content
+          profiles_dir = File.expand_path("~/Library/MobileDevice/Provisioning Profiles")
+          FileUtils.mkdir_p(profiles_dir)
+          prof_filepath = File.join(profiles_dir, "#{prof.uuid}.mobileprovision")
+          File.binwrite(prof_filepath, Base64.decode64(prof.profile_content))
+          UI.success("Installed Provisioning Profile #{prof.uuid}.mobileprovision to #{prof_filepath}")
         end
       end
     rescue => e
       UI.error("ConnectAPI setup note: #{e.message}")
     end
 
-    xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}"
+    xcargs_str = "CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=\"Apple Distribution\" PROVISIONING_PROFILE_SPECIFIER=\"Rotas AppStore Profile\" DEVELOPMENT_TEAM=\"#{ENV['DEVELOPMENT_TEAM'] || 'CR85ZZCSUA'}\""
 
     build_app(
       project: "Rotas.xcodeproj",
@@ -122,10 +131,11 @@ platform :ios do
       clean: true,
       xcargs: xcargs_str,
       export_options: {
-        allowProvisioningUpdates: true,
-        authenticationKeyID: key_id,
-        authenticationKeyIssuerID: issuer_id,
-        authenticationKeyPath: key_filepath
+        method: "app-store",
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.wvrousseletp.Rotas" => "Rotas AppStore Profile"
+        }
       },
       output_directory: "./build",
       output_name: "Rotas.ipa"
