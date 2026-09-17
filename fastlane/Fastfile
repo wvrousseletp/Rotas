@@ -93,19 +93,36 @@ platform :ios do
       UI.success("Using Bundle ID: #{b_id.identifier} (#{b_id.id})")
       begin
         apps = Spaceship::ConnectAPI::App.all
-        app_obj = apps.find { |a| (a.bundle_id && a.bundle_id.id == b_id.id) || a.sku == "com.wvrousseletp.Rotas" }
+        app_obj = apps.find do |a|
+          bid_id = a.bundle_id.respond_to?(:id) ? a.bundle_id.id : a.bundle_id.to_s
+          bid_ident = a.bundle_id.respond_to?(:identifier) ? a.bundle_id.identifier : a.bundle_id.to_s
+          bid_id == b_id.id || bid_ident == "com.wvrousseletp.Rotas" || a.sku == "com.wvrousseletp.Rotas"
+        end
+
         if app_obj.nil?
           UI.message("Creating App Rotas on App Store Connect...")
-          res_app = Spaceship::ConnectAPI.post_app(
-            name: "Rotas",
-            primary_locale: "en-US",
-            sku: "com.wvrousseletp.Rotas",
-            bundle_id_id: b_id.id
-          )
-          app_obj = res_app.respond_to?(:to_models) ? res_app.to_models.first : res_app
-          UI.success("Created App on App Store Connect: #{app_obj.name}")
+          begin
+            res_app = Spaceship::ConnectAPI.post_app(
+              name: "Rotas",
+              primary_locale: "en-US",
+              sku: "com.wvrousseletp.Rotas",
+              bundle_id_id: b_id.id
+            )
+            app_obj = res_app.respond_to?(:to_models) ? res_app.to_models.first : res_app
+            UI.success("Created App on App Store Connect: #{app_obj.name}")
+          rescue => e
+            UI.important("Could not create App with name 'Rotas': #{e.message}. Trying 'Rotas App'...")
+            res_app = Spaceship::ConnectAPI.post_app(
+              name: "Rotas App",
+              primary_locale: "en-US",
+              sku: "com.wvrousseletp.Rotas",
+              bundle_id_id: b_id.id
+            )
+            app_obj = res_app.respond_to?(:to_models) ? res_app.to_models.first : res_app
+            UI.success("Created App on App Store Connect: #{app_obj.name}")
+          end
         else
-          UI.message("App Rotas exists on App Store Connect.")
+          UI.message("App Rotas exists on App Store Connect: #{app_obj.name}")
         end
       rescue => e
         UI.error("App creation note: #{e.message}")
@@ -187,6 +204,7 @@ platform :ios do
 
     upload_to_testflight(
       api_key: api_key,
+      app_identifier: "com.wvrousseletp.Rotas",
       skip_waiting_for_build_processing: true
     )
   end
