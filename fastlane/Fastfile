@@ -58,8 +58,11 @@ platform :ios do
     get_certificates(
       api_key: api_key,
       development: false,
-      keychain_path: keychain_db_path
+      keychain_path: keychain_db_path,
+      keychain_password: "ci_password"
     )
+
+    sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ci_password #{keychain_db_path} || true")
 
     # Ensure Bundle ID, App and Provisioning Profile exist on Developer Portal and App Store Connect using API Key
     b_id = nil
@@ -169,6 +172,8 @@ platform :ios do
       scheme: "Rotas",
       export_method: "app-store",
       clean: true,
+      keychain_path: keychain_db_path,
+      keychain_password: "ci_password",
       xcargs: xcargs_str,
       export_options: {
         method: "app-store",
