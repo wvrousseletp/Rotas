@@ -41,18 +41,24 @@ platform :ios do
     # Ensure Bundle ID and App exist on Developer Portal and App Store Connect using API Key
     bundle_id = nil
     begin
-      bundle_id = Spaceship::ConnectAPI::BundleId.find("com.wvrousseletp.Rotas")
+      all_bids = Spaceship::ConnectAPI::BundleId.all
+      UI.message("Existing Bundle IDs on Developer Portal:")
+      all_bids.each do |b|
+        UI.message(" - #{b.identifier} (ID: #{b.id}, Name: #{b.name}, Platform: #{b.platform})")
+      end
+      bundle_id = all_bids.find { |b| b.identifier == "com.wvrousseletp.Rotas" }
+
       if bundle_id.nil?
         UI.message("Creating Bundle ID com.wvrousseletp.Rotas on Developer Portal...")
         bundle_id = Spaceship::ConnectAPI.post_bundle_id(
           name: "Rotas",
           identifier: "com.wvrousseletp.Rotas",
-          platform: "IOS",
+          platform: "UNIVERSAL",
           seed_id: ENV["DEVELOPMENT_TEAM"] || "CR85ZZCSUA"
         )
         UI.success("Successfully created Bundle ID: #{bundle_id.identifier}")
       else
-        UI.message("Bundle ID com.wvrousseletp.Rotas exists.")
+        UI.message("Bundle ID com.wvrousseletp.Rotas found: #{bundle_id.id}")
       end
     rescue => e
       UI.error("Bundle ID setup note: #{e.message}")
