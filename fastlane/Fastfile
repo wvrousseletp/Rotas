@@ -30,32 +30,26 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
-    keychain_path = File.expand_path("~/Library/Keychains/ci_keychain-db")
-
-    create_keychain(
-      name: "ci_keychain",
-      password: "ci_password",
-      default_keychain: true,
-      unlock: true,
-      timeout: 3600
-    )
-
-    get_certificates(
-      api_key: api_key,
-      keychain_path: keychain_path,
-      keychain_password: "ci_password"
-    )
-
     get_provisioning_profile(
       api_key: api_key,
-      app_identifier: "com.wvrousseletp.Rotas"
+      app_identifier: "com.wvrousseletp.Rotas",
+      skip_certificate_verification: true
     )
+
+    xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}"
 
     build_app(
       project: "Rotas.xcodeproj",
       scheme: "Rotas",
       export_method: "app-store",
       clean: true,
+      xcargs: xcargs_str,
+      export_options: {
+        allowProvisioningUpdates: true,
+        authenticationKeyID: key_id,
+        authenticationKeyIssuerID: issuer_id,
+        authenticationKeyPath: key_filepath
+      },
       output_directory: "./build",
       output_name: "Rotas.ipa"
     )
