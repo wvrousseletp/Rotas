@@ -24,14 +24,20 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
+    key_filepath = api_key[:key_filepath] || api_key[:filepath]
+    UI.message("API Key File Path: #{key_filepath}")
+
     build_app(
       project: "Rotas.xcodeproj",
       scheme: "Rotas",
       export_method: "app-store",
       clean: true,
-      xcargs: "-allowProvisioningUpdates",
+      xcargs: "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}",
       export_options: {
-        allowProvisioningUpdates: true
+        allowProvisioningUpdates: true,
+        authenticationKeyID: key_id,
+        authenticationKeyIssuerID: issuer_id,
+        authenticationKeyPath: key_filepath
       },
       output_directory: "./build",
       output_name: "Rotas.ipa"
