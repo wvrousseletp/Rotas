@@ -1,4 +1,110 @@
-// !$*UTF8*$!
+import os
+
+project_dir = "/Users/wellersonvicenterousseletporfirio/Documents/antigravity/clever-raman"
+xcodeproj_dir = os.path.join(project_dir, "Rotas.xcodeproj")
+xcshared_dir = os.path.join(xcodeproj_dir, "xcshareddata", "xcschemes")
+xcwork_dir = os.path.join(xcodeproj_dir, "project.xcworkspace")
+
+os.makedirs(xcshared_dir, exist_ok=True)
+os.makedirs(xcwork_dir, exist_ok=True)
+
+# 1. contents.xcworkspacedata
+xcworkspace_content = """<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "self:">
+   </FileRef>
+</Workspace>
+"""
+with open(os.path.join(xcwork_dir, "contents.xcworkspacedata"), "w") as f:
+    f.write(xcworkspace_content)
+
+# 2. Rotas.xcscheme
+scheme_content = """<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1600"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "ROTASMAINAPP12345678"
+               BuildableName = "Rotas.app"
+               BlueprintName = "Rotas"
+               ReferencedContainer = "container:Rotas.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "ROTASMAINAPP12345678"
+            BuildableName = "Rotas.app"
+            BlueprintName = "Rotas"
+            ReferencedContainer = "container:Rotas.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "ROTASMAINAPP12345678"
+            BuildableName = "Rotas.app"
+            BlueprintName = "Rotas"
+            ReferencedContainer = "container:Rotas.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>
+"""
+with open(os.path.join(xcshared_dir, "Rotas.xcscheme"), "w") as f:
+    f.write(scheme_content)
+
+# 3. project.pbxproj generator
+pbxproj_content = """// !$*UTF8*$!
 {
 	archiveVersion = 1;
 	classes = {
@@ -343,3 +449,9 @@
 	};
 	rootObject = 8000000000000001 /* Project object */;
 }
+"""
+
+with open(os.path.join(xcodeproj_dir, "project.pbxproj"), "w") as f:
+    f.write(pbxproj_content)
+
+print("Xcode project updated with explicit DEVELOPMENT_TEAM = CR85ZZCSUA!")
