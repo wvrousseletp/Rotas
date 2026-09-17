@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(iOS 17.0, *)
 public struct MainTabView: View {
     @State private var selectedTab: AppTab = .dashboard
     
