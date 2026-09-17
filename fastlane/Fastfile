@@ -64,69 +64,39 @@ platform :ios do
 
     sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k ci_password #{keychain_db_path} || true")
 
-    # Ensure Bundle ID, App and Provisioning Profile exist on Developer Portal and App Store Connect using API Key
+    # Ensure Bundle ID and App exist on Developer Portal and App Store Connect
+    begin
+      produce(
+        api_key: api_key,
+        app_identifier: "com.wvrousseletp.Rotas",
+        app_name: "Rotas",
+        language: "English",
+        sku: "com.wvrousseletp.Rotas"
+      )
+    rescue => e
+      UI.important("Produce note: #{e.message}")
+      begin
+        produce(
+          api_key: api_key,
+          app_identifier: "com.wvrousseletp.Rotas",
+          app_name: "Rotas App",
+          language: "English",
+          sku: "com.wvrousseletp.Rotas"
+        )
+      rescue => e2
+        UI.important("Produce fallback note: #{e2.message}")
+      end
+    end
+
     b_id = nil
     begin
       b_id = Spaceship::ConnectAPI::BundleId.all(limit: 200).find { |b| b.identifier == "com.wvrousseletp.Rotas" }
     rescue => e
-      UI.error("BundleId list note: #{e.message}")
-    end
-
-    if b_id.nil?
-      begin
-        UI.message("Creating Bundle ID com.wvrousseletp.Rotas on Developer Portal...")
-        res = Spaceship::ConnectAPI.post_bundle_id(
-          name: "Rotas",
-          identifier: "com.wvrousseletp.Rotas",
-          platform: "UNIVERSAL",
-          seed_id: nil
-        )
-        b_id = res.respond_to?(:to_models) ? res.to_models.first : res
-        UI.success("Successfully created Bundle ID: #{b_id.id}")
-      rescue => e
-        UI.error("post_bundle_id note: #{e.message}")
-        b_id = Spaceship::ConnectAPI::BundleId.all(limit: 200).find { |b| b.identifier == "com.wvrousseletp.Rotas" }
-      end
+      UI.error("BundleId lookup note: #{e.message}")
     end
 
     if b_id
       UI.success("Using Bundle ID: #{b_id.identifier} (#{b_id.id})")
-      begin
-        apps = Spaceship::ConnectAPI::App.all
-        app_obj = apps.find do |a|
-          bid_id = a.bundle_id.respond_to?(:id) ? a.bundle_id.id : a.bundle_id.to_s
-          bid_ident = a.bundle_id.respond_to?(:identifier) ? a.bundle_id.identifier : a.bundle_id.to_s
-          bid_id == b_id.id || bid_ident == "com.wvrousseletp.Rotas" || a.sku == "com.wvrousseletp.Rotas"
-        end
-
-        if app_obj.nil?
-          UI.message("Creating App Rotas on App Store Connect...")
-          begin
-            res_app = Spaceship::ConnectAPI.post_app(
-              name: "Rotas",
-              primary_locale: "en-US",
-              sku: "com.wvrousseletp.Rotas",
-              bundle_id_id: b_id.id
-            )
-            app_obj = res_app.respond_to?(:to_models) ? res_app.to_models.first : res_app
-            UI.success("Created App on App Store Connect: #{app_obj.name}")
-          rescue => e
-            UI.important("Could not create App with name 'Rotas': #{e.message}. Trying 'Rotas App'...")
-            res_app = Spaceship::ConnectAPI.post_app(
-              name: "Rotas App",
-              primary_locale: "en-US",
-              sku: "com.wvrousseletp.Rotas",
-              bundle_id_id: b_id.id
-            )
-            app_obj = res_app.respond_to?(:to_models) ? res_app.to_models.first : res_app
-            UI.success("Created App on App Store Connect: #{app_obj.name}")
-          end
-        else
-          UI.message("App Rotas exists on App Store Connect: #{app_obj.name}")
-        end
-      rescue => e
-        UI.error("App creation note: #{e.message}")
-      end
 
       begin
         cert_id = lane_context[SharedValues::CERT_CERTIFICATE_ID]
