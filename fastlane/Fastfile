@@ -24,19 +24,11 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
-    UI.message("API Key object: #{api_key.inspect}")
+    key_path = File.expand_path("~/AuthKey_#{key_id}.p8")
+    File.write(key_path, api_key[:key])
+    UI.message("Wrote API key to file: #{key_path}")
 
-    key_path = if api_key.is_a?(Hash)
-      api_key[:key_filepath] || api_key["key_filepath"] || api_key[:filepath] || api_key["filepath"]
-    elsif api_key.respond_to?(:key_filepath)
-      api_key.key_filepath
-    else
-      nil
-    end
-
-    UI.message("Extracted API Key path: #{key_path.inspect}")
-
-    xcargs_str = key_path ? "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_path}" : "-allowProvisioningUpdates"
+    xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_path}"
 
     build_app(
       project: "Rotas.xcodeproj",
@@ -45,7 +37,10 @@ platform :ios do
       clean: true,
       xcargs: xcargs_str,
       export_options: {
-        allowProvisioningUpdates: true
+        allowProvisioningUpdates: true,
+        authenticationKeyID: key_id,
+        authenticationKeyIssuerID: issuer_id,
+        authenticationKeyPath: key_path
       },
       output_directory: "./build",
       output_name: "Rotas.ipa"
