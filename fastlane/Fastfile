@@ -77,20 +77,6 @@ platform :ios do
       end
     rescue => e
       UI.error("App setup note: #{e.message}")
-    end
-
-    get_certificates(
-      api_key: api_key,
-      development: false
-    )
-
-    get_provisioning_profile(
-      api_key: api_key,
-      app_identifier: "com.wvrousseletp.Rotas",
-      development: false,
-      skip_certificate_verification: true
-    )
-
     xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}"
 
     build_app(
