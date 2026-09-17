@@ -62,9 +62,15 @@ platform :ios do
     )
 
     # Ensure Bundle ID, App and Provisioning Profile exist on Developer Portal and App Store Connect using API Key
+    b_id = nil
     begin
       b_id = Spaceship::ConnectAPI::BundleId.all(filter: { identifier: "com.wvrousseletp.Rotas" }).first
-      if b_id.nil?
+    rescue => e
+      UI.error("BundleId filter note: #{e.message}")
+    end
+
+    if b_id.nil?
+      begin
         UI.message("Creating Bundle ID com.wvrousseletp.Rotas on Developer Portal...")
         b_id = Spaceship::ConnectAPI.post_bundle_id(
           name: "Rotas",
@@ -73,55 +79,65 @@ platform :ios do
           seed_id: ENV["DEVELOPMENT_TEAM"] || "CR85ZZCSUA"
         )
         UI.success("Successfully created Bundle ID: #{b_id.identifier}")
-      else
-        UI.message("Bundle ID com.wvrousseletp.Rotas found: #{b_id.id}")
+      rescue => e
+        UI.error("post_bundle_id note: #{e.message}")
+        b_id = Spaceship::ConnectAPI::BundleId.all.find { |b| b.identifier == "com.wvrousseletp.Rotas" }
       end
+    end
 
-      app_obj = Spaceship::ConnectAPI::App.all(filter: { bundleId: b_id.id }).first
-      if app_obj.nil?
-        UI.message("Creating App Rotas on App Store Connect...")
-        app_obj = Spaceship::ConnectAPI.post_app(
-          name: "Rotas",
-          primary_locale: "en-US",
-          sku: "com.wvrousseletp.Rotas",
-          bundle_id_id: b_id.id
-        )
-        UI.success("Created App on App Store Connect: #{app_obj.name}")
-      else
-        UI.message("App Rotas exists on App Store Connect.")
-      end
-
-      cert_id = lane_context[SharedValues::CERT_CERTIFICATE_ID]
-      cert_obj = cert_id ? Spaceship::ConnectAPI::Certificate.all.find { |c| c.id == cert_id } : Spaceship::ConnectAPI::Certificate.all.select { |c| c.certificate_type.to_s.include?("DISTRIBUTION") }.first
-
-      if cert_obj
-        profiles = Spaceship::ConnectAPI::Profile.all(filter: { bundleId: b_id.id, profileType: "IOS_APP_STORE" })
-        prof = profiles.first
-        if prof.nil?
-          UI.message("Creating App Store Provisioning Profile for com.wvrousseletp.Rotas...")
-          prof = Spaceship::ConnectAPI::Profile.create(
-            name: "Rotas AppStore Profile",
-            profile_type: "IOS_APP_STORE",
-            bundle_id_id: b_id.id,
-            certificate_ids: [cert_obj.id]
+    if b_id
+      UI.success("Using Bundle ID: #{b_id.identifier} (#{b_id.id})")
+      begin
+        app_obj = Spaceship::ConnectAPI::App.all(filter: { bundleId: b_id.id }).first
+        if app_obj.nil?
+          UI.message("Creating App Rotas on App Store Connect...")
+          app_obj = Spaceship::ConnectAPI.post_app(
+            name: "Rotas",
+            primary_locale: "en-US",
+            sku: "com.wvrousseletp.Rotas",
+            bundle_id_id: b_id.id
           )
-          UI.success("Created Provisioning Profile: #{prof.name}")
+          UI.success("Created App on App Store Connect: #{app_obj.name}")
         else
-          UI.message("Provisioning Profile found: #{prof.name}")
+          UI.message("App Rotas exists on App Store Connect.")
         end
-
-        if prof && prof.profile_content
-          profiles_dir = File.expand_path("~/Library/MobileDevice/Provisioning Profiles")
-          FileUtils.mkdir_p(profiles_dir)
-          prof_filepath = File.join(profiles_dir, "#{prof.uuid}.mobileprovision")
-          File.binwrite(prof_filepath, Base64.decode64(prof.profile_content))
-          UI.success("Installed Provisioning Profile #{prof.uuid}.mobileprovision to #{prof_filepath}")
-          lane_context[:CURRENT_PROF_UUID] = prof.uuid
-          lane_context[:CURRENT_PROF_NAME] = prof.name
-        end
+      rescue => e
+        UI.error("App creation note: #{e.message}")
       end
-    rescue => e
-      UI.error("ConnectAPI setup note: #{e.message}")
+
+      begin
+        cert_id = lane_context[SharedValues::CERT_CERTIFICATE_ID]
+        cert_obj = cert_id ? Spaceship::ConnectAPI::Certificate.all.find { |c| c.id == cert_id } : Spaceship::ConnectAPI::Certificate.all.select { |c| c.certificate_type.to_s.include?("DISTRIBUTION") }.first
+
+        if cert_obj
+          profiles = Spaceship::ConnectAPI::Profile.all(filter: { bundleId: b_id.id, profileType: "IOS_APP_STORE" })
+          prof = profiles.first
+          if prof.nil?
+            UI.message("Creating App Store Provisioning Profile for com.wvrousseletp.Rotas...")
+            prof = Spaceship::ConnectAPI::Profile.create(
+              name: "Rotas AppStore Profile",
+              profile_type: "IOS_APP_STORE",
+              bundle_id_id: b_id.id,
+              certificate_ids: [cert_obj.id]
+            )
+            UI.success("Created Provisioning Profile: #{prof.name}")
+          else
+            UI.message("Provisioning Profile found: #{prof.name}")
+          end
+
+          if prof && prof.profile_content
+            profiles_dir = File.expand_path("~/Library/MobileDevice/Provisioning Profiles")
+            FileUtils.mkdir_p(profiles_dir)
+            prof_filepath = File.join(profiles_dir, "#{prof.uuid}.mobileprovision")
+            File.binwrite(prof_filepath, Base64.decode64(prof.profile_content))
+            UI.success("Installed Provisioning Profile #{prof.uuid}.mobileprovision to #{prof_filepath}")
+            lane_context[:CURRENT_PROF_UUID] = prof.uuid
+            lane_context[:CURRENT_PROF_NAME] = prof.name
+          end
+        end
+      rescue => e
+        UI.error("Profile creation note: #{e.message}")
+      end
     end
 
     target_profile = lane_context[:CURRENT_PROF_UUID] || lane_context[:CURRENT_PROF_NAME] || "Rotas AppStore Profile"
