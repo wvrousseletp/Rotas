@@ -255,6 +255,7 @@ pbxproj_content = """// !$*UTF8*$!
 					ROTASMAINAPP12345678 = {
 						CreatedOnToolsVersion = 16.0;
 						DevelopmentTeam = CR85ZZCSUA;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};

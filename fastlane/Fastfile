@@ -29,6 +29,10 @@ platform :ios do
       scheme: "Rotas",
       export_method: "app-store",
       clean: true,
+      xcargs: "-allowProvisioningUpdates",
+      export_options: {
+        allowProvisioningUpdates: true
+      },
       output_directory: "./build",
       output_name: "Rotas.ipa"
     )
