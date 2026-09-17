@@ -30,6 +30,8 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
+    keychain_path = File.expand_path("~/Library/Keychains/ci_keychain-db")
+
     create_keychain(
       name: "ci_keychain",
       password: "ci_password",
@@ -40,6 +42,7 @@ platform :ios do
 
     get_certificates(
       api_key: api_key,
+      keychain_path: keychain_path,
       keychain_password: "ci_password"
     )
 
