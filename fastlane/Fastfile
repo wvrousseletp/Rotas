@@ -94,9 +94,12 @@ platform :ios do
       UI.error("Certificate management note: #{e.message}")
     end
 
+    keychain_db_path = File.expand_path("~/Library/Keychains/ci_keychain-db")
+
     get_certificates(
       api_key: api_key,
-      development: false
+      development: false,
+      keychain_path: keychain_db_path
     )
 
     get_provisioning_profile(
