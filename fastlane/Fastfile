@@ -116,13 +116,16 @@ platform :ios do
           prof_filepath = File.join(profiles_dir, "#{prof.uuid}.mobileprovision")
           File.binwrite(prof_filepath, Base64.decode64(prof.profile_content))
           UI.success("Installed Provisioning Profile #{prof.uuid}.mobileprovision to #{prof_filepath}")
+          lane_context[:CURRENT_PROF_UUID] = prof.uuid
+          lane_context[:CURRENT_PROF_NAME] = prof.name
         end
       end
     rescue => e
       UI.error("ConnectAPI setup note: #{e.message}")
     end
 
-    xcargs_str = "CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=\"Apple Distribution\" PROVISIONING_PROFILE_SPECIFIER=\"Rotas AppStore Profile\" DEVELOPMENT_TEAM=\"#{ENV['DEVELOPMENT_TEAM'] || 'CR85ZZCSUA'}\""
+    target_profile = lane_context[:CURRENT_PROF_UUID] || lane_context[:CURRENT_PROF_NAME] || "Rotas AppStore Profile"
+    xcargs_str = "CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=\"Apple Distribution\" PROVISIONING_PROFILE_SPECIFIER=\"#{target_profile}\" DEVELOPMENT_TEAM=\"#{ENV['DEVELOPMENT_TEAM'] || 'CR85ZZCSUA'}\""
 
     build_app(
       project: "Rotas.xcodeproj",
@@ -134,7 +137,7 @@ platform :ios do
         method: "app-store",
         signingStyle: "manual",
         provisioningProfiles: {
-          "com.wvrousseletp.Rotas" => "Rotas AppStore Profile"
+          "com.wvrousseletp.Rotas" => target_profile
         }
       },
       output_directory: "./build",
