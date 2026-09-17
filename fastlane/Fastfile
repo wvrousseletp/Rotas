@@ -31,7 +31,7 @@ platform :ios do
       xcodeproj: "Rotas.xcodeproj"
     )
 
-    xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath}"
+    xcargs_str = "-allowProvisioningUpdates -authenticationKeyID #{key_id} -authenticationKeyIssuerID #{issuer_id} -authenticationKeyPath #{key_filepath} CODE_SIGN_IDENTITY=\"Apple Distribution\" DEVELOPMENT_TEAM=\"CR85ZZCSUA\""
 
     build_app(
       project: "Rotas.xcodeproj",
@@ -41,9 +41,7 @@ platform :ios do
       xcargs: xcargs_str,
       export_options: {
         allowProvisioningUpdates: true,
-        authenticationKeyID: key_id,
-        authenticationKeyIssuerID: issuer_id,
-        authenticationKeyPath: key_filepath
+        signingStyle: "automatic"
       },
       output_directory: "./build",
       output_name: "Rotas.ipa"
