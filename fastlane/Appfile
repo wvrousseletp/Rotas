@@ -1,0 +1,6 @@
+app_identifier(ENV["APP_IDENTIFIER"] || "com.wvrousseletp.Rotas")
+apple_id(ENV["APPLE_ID"] || "wvrousseletp@gmail.com")
+team_id(ENV["DEVELOPMENT_TEAM"] || "YOUR_TEAM_ID")
+
+# For App Store Connect API Key
+# key_id, issuer_id, key_content configured in Fastfile via app_store_connect_api_key

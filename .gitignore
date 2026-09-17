@@ -1,0 +1,35 @@
+# Xcode
+build/
+DerivedData/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moveresults
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/workspace.settings
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/readme.md
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# SwiftPM
+.build/
+Packages/
+Package.pins
+Package.resolved
