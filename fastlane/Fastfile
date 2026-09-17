@@ -72,13 +72,14 @@ platform :ios do
     if b_id.nil?
       begin
         UI.message("Creating Bundle ID com.wvrousseletp.Rotas on Developer Portal...")
-        b_id = Spaceship::ConnectAPI.post_bundle_id(
+        res = Spaceship::ConnectAPI.post_bundle_id(
           name: "Rotas",
           identifier: "com.wvrousseletp.Rotas",
           platform: "UNIVERSAL",
           seed_id: nil
         )
-        UI.success("Successfully created Bundle ID: #{b_id.identifier}")
+        b_id = res.respond_to?(:to_models) ? res.to_models.first : res
+        UI.success("Successfully created Bundle ID: #{b_id.id}")
       rescue => e
         UI.error("post_bundle_id note: #{e.message}")
         b_id = Spaceship::ConnectAPI::BundleId.all(limit: 200).find { |b| b.identifier == "com.wvrousseletp.Rotas" }
@@ -88,15 +89,17 @@ platform :ios do
     if b_id
       UI.success("Using Bundle ID: #{b_id.identifier} (#{b_id.id})")
       begin
-        app_obj = Spaceship::ConnectAPI::App.all(filter: { bundleId: b_id.id }).first
+        apps = Spaceship::ConnectAPI::App.all
+        app_obj = apps.find { |a| (a.bundle_id && a.bundle_id.id == b_id.id) || a.sku == "com.wvrousseletp.Rotas" }
         if app_obj.nil?
           UI.message("Creating App Rotas on App Store Connect...")
-          app_obj = Spaceship::ConnectAPI.post_app(
+          res_app = Spaceship::ConnectAPI.post_app(
             name: "Rotas",
             primary_locale: "en-US",
             sku: "com.wvrousseletp.Rotas",
             bundle_id_id: b_id.id
           )
+          app_obj = res_app.respond_to?(:to_models) ? res_app.to_models.first : res_app
           UI.success("Created App on App Store Connect: #{app_obj.name}")
         else
           UI.message("App Rotas exists on App Store Connect.")
@@ -110,8 +113,8 @@ platform :ios do
         cert_obj = cert_id ? Spaceship::ConnectAPI::Certificate.all.find { |c| c.id == cert_id } : Spaceship::ConnectAPI::Certificate.all.select { |c| c.certificate_type.to_s.include?("DISTRIBUTION") }.first
 
         if cert_obj
-          profiles = Spaceship::ConnectAPI::Profile.all(filter: { bundleId: b_id.id, profileType: "IOS_APP_STORE" })
-          prof = profiles.first
+          all_profiles = Spaceship::ConnectAPI::Profile.all(limit: 200)
+          prof = all_profiles.find { |p| p.bundle_id && p.bundle_id.id == b_id.id && p.profile_type.to_s.include?("APP_STORE") }
           if prof.nil?
             UI.message("Creating App Store Provisioning Profile for com.wvrousseletp.Rotas...")
             prof = Spaceship::ConnectAPI::Profile.create(
