@@ -102,23 +102,23 @@ platform :ios do
         if app_obj.nil?
           UI.message("Creating App Rotas on App Store Connect...")
           begin
-            res_app = Spaceship::ConnectAPI.post_app(
+            app_obj = Spaceship::ConnectAPI::App.create(
               name: "Rotas",
               primary_locale: "en-US",
               sku: "com.wvrousseletp.Rotas",
-              bundle_id: b_id.id
+              bundle_id: b_id.id,
+              platforms: ["IOS"]
             )
-            app_obj = res_app.respond_to?(:to_models) ? res_app.to_models.first : res_app
             UI.success("Created App on App Store Connect: #{app_obj.name}")
           rescue => e
             UI.important("Could not create App with name 'Rotas': #{e.message}. Retrying with 'Rotas App'...")
-            res_app = Spaceship::ConnectAPI.post_app(
+            app_obj = Spaceship::ConnectAPI::App.create(
               name: "Rotas App",
               primary_locale: "en-US",
               sku: "com.wvrousseletp.Rotas",
-              bundle_id: b_id.id
+              bundle_id: b_id.id,
+              platforms: ["IOS"]
             )
-            app_obj = res_app.respond_to?(:to_models) ? res_app.to_models.first : res_app
             UI.success("Created App on App Store Connect: #{app_obj.name}")
           end
         else
