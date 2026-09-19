@@ -17,11 +17,7 @@ public struct RecordVisitSheetView: View {
         allProducts.filter { $0.isActive }
     }
     
-    private var storePriceTable: PriceTable? {
-        guard let tableID = stop.store?.preferredPriceTableID else { return nil }
-        return priceTables.first { $0.id == tableID }
-    }
-    
+    @State private var selectedPriceTableID: UUID?
     @State private var managerStatus: ManagerStatus = .spokenWithManager
     @State private var visitPurpose: TransactionType = .consignment
     @State private var selectedPaymentMethod: PaymentMethod = .pix
@@ -33,6 +29,12 @@ public struct RecordVisitSheetView: View {
     
     public init(stop: RouteStop) {
         self.stop = stop
+        _selectedPriceTableID = State(initialValue: stop.store?.preferredPriceTableID)
+    }
+    
+    private var selectedPriceTable: PriceTable? {
+        guard let tableID = selectedPriceTableID else { return nil }
+        return priceTables.first { $0.id == tableID }
     }
     
     public var body: some View {
@@ -67,7 +69,16 @@ public struct RecordVisitSheetView: View {
                     }
                 }
                 
-                Section(header: Text(storePriceTable != nil ? "Produtos Deixados / Vendidos (\(storePriceTable!.name))" : "Produtos Deixados / Vendidos")) {
+                Section(header: Text("Tabela de Preços da Visita")) {
+                    Picker("Tabela de Preço Aplicada", selection: $selectedPriceTableID) {
+                        Text("Preço Base / Padrão").tag(UUID?.none)
+                        ForEach(priceTables) { table in
+                            Text(table.name).tag(UUID?.some(table.id))
+                        }
+                    }
+                }
+                
+                Section(header: Text(selectedPriceTable != nil ? "Produtos Deixados / Vendidos (\(selectedPriceTable!.name))" : "Produtos Deixados / Vendidos")) {
                     if availableProducts.isEmpty {
                         Text("Nenhum produto cadastrado no catálogo.")
                             .font(.caption)
@@ -76,7 +87,7 @@ public struct RecordVisitSheetView: View {
                         ForEach(availableProducts) { product in
                             ProductQuantityRowView(
                                 product: product,
-                                storePriceTable: storePriceTable,
+                                storePriceTable: selectedPriceTable,
                                 quantity: productQuantities[product.id] ?? 0,
                                 onIncrement: {
                                     let current = productQuantities[product.id] ?? 0
@@ -108,7 +119,20 @@ public struct RecordVisitSheetView: View {
                                 Text(method.rawValue).tag(method)
                             }
                         }
-                        Stepper("Prazo: \(paymentTermDays) dias", value: $paymentTermDays, in: 0...90, step: 5)
+                        
+                        HStack {
+                            Text("Prazo de Pagamento")
+                            Spacer()
+                            TextField("0", value: $paymentTermDays, format: .number)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 50)
+                                .textFieldStyle(.roundedBorder)
+                            Text("dias")
+                            Stepper("", value: $paymentTermDays, in: 0...365)
+                                .labelsHidden()
+                        }
+                        
                         Toggle("Já foi pago no ato?", isOn: $isPaid)
                     }
                 }
@@ -150,7 +174,7 @@ public struct RecordVisitSheetView: View {
         
         for (productID, qty) in productQuantities where qty > 0 {
             if let product = availableProducts.first(where: { $0.id == productID }) {
-                let effectivePrice = product.price(for: storePriceTable)
+                let effectivePrice = product.price(for: selectedPriceTable)
                 let item = TransactionItem(
                     itemType: visitPurpose,
                     quantity: qty,
