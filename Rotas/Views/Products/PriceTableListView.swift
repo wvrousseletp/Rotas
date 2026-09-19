@@ -21,25 +21,36 @@ public struct PriceTableListView: View {
                     Text("Nenhuma tabela de preço cadastrada.").foregroundColor(.secondary)
                 } else {
                     ForEach(priceTables) { table in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(table.name).font(.headline)
-                                if table.discountPercentage > 0 {
-                                    Text("Desconto padrão: \(table.discountPercentage, specifier: "%.1f")%")
-                                        .font(.caption)
-                                        .foregroundColor(.green)
+                        NavigationLink(destination: PriceTableDetailView(priceTable: table)) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(table.name).font(.headline)
+                                    let customCount = table.productPrices?.count ?? 0
+                                    if customCount > 0 {
+                                        Text("\(customCount) produto(s) com preço específico")
+                                            .font(.caption)
+                                            .foregroundColor(.green)
+                                    } else if table.discountPercentage > 0 {
+                                        Text("Desconto padrão: \(table.discountPercentage, specifier: "%.1f")%")
+                                            .font(.caption)
+                                            .foregroundColor(.blue)
+                                    } else {
+                                        Text("Toque para definir preços por produto")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
-                            }
-                            Spacer()
-                            if table.isDefault {
-                                Text("Padrão")
-                                    .font(.caption2)
-                                    .bold()
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.blue.opacity(0.2))
-                                    .foregroundColor(.blue)
-                                    .clipShape(Capsule())
+                                Spacer()
+                                if table.isDefault {
+                                    Text("Padrão")
+                                        .font(.caption2)
+                                        .bold()
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.blue.opacity(0.2))
+                                        .foregroundColor(.blue)
+                                        .clipShape(Capsule())
+                                }
                             }
                         }
                     }

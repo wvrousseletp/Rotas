@@ -17,6 +17,11 @@ public struct RecordVisitSheetView: View {
         allProducts.filter { $0.isActive }
     }
     
+    private var storePriceTable: PriceTable? {
+        guard let tableID = stop.store?.preferredPriceTableID else { return nil }
+        return priceTables.first { $0.id == tableID }
+    }
+    
     @State private var managerStatus: ManagerStatus = .spokenWithManager
     @State private var visitPurpose: TransactionType = .consignment
     @State private var selectedPaymentMethod: PaymentMethod = .pix
@@ -62,19 +67,28 @@ public struct RecordVisitSheetView: View {
                     }
                 }
                 
-                Section(header: Text("Produtos Deixados / Vendidos")) {
+                Section(header: Text(storePriceTable != nil ? "Produtos Deixados / Vendidos (\(storePriceTable!.name))" : "Produtos Deixados / Vendidos")) {
                     if availableProducts.isEmpty {
                         Text("Nenhum produto cadastrado no catálogo.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else {
                         ForEach(availableProducts) { product in
+                            let effectivePrice = product.price(for: storePriceTable)
                             HStack {
                                 VStack(alignment: .leading) {
                                     Text(product.name).font(.body)
-                                    Text(product.basePrice.formattedAsBRL() + " / " + product.unit)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                    HStack(spacing: 4) {
+                                        Text(effectivePrice.formattedAsBRL() + " / " + product.unit)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        if effectivePrice != product.basePrice {
+                                            Text("(De: \(product.basePrice.formattedAsBRL()))")
+                                                .font(.caption2)
+                                                .strikethrough()
+                                                .foregroundColor(.gray)
+                                        }
+                                    }
                                 }
                                 Spacer()
                                 HStack(spacing: 12) {
@@ -166,10 +180,11 @@ public struct RecordVisitSheetView: View {
         
         for (productID, qty) in productQuantities where qty > 0 {
             if let product = availableProducts.first(where: { $0.id == productID }) {
+                let effectivePrice = product.price(for: storePriceTable)
                 let item = TransactionItem(
                     itemType: visitPurpose,
                     quantity: qty,
-                    unitPrice: product.basePrice,
+                    unitPrice: effectivePrice,
                     product: product,
                     visitRecord: record
                 )

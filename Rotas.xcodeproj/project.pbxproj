@@ -27,6 +27,7 @@
 		1000000000000019 /* ProductCatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2000000000000019 /* ProductCatalogView.swift */; };
 		1000000000000020 /* AddProductView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2000000000000020 /* AddProductView.swift */; };
 		1000000000000021 /* PriceTableListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2000000000000021 /* PriceTableListView.swift */; };
+		1000000000000027 /* PriceTableDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2000000000000027 /* PriceTableDetailView.swift */; };
 		1000000000000022 /* FinancialSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2000000000000022 /* FinancialSummaryView.swift */; };
 		1000000000000023 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2000000000000023 /* NotificationManager.swift */; };
 		1000000000000024 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2000000000000024 /* HapticManager.swift */; };
@@ -57,6 +58,7 @@
 		2000000000000019 /* ProductCatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Rotas/Views/Products/ProductCatalogView.swift"; sourceTree = "<group>"; };
 		2000000000000020 /* AddProductView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Rotas/Views/Products/AddProductView.swift"; sourceTree = "<group>"; };
 		2000000000000021 /* PriceTableListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Rotas/Views/Products/PriceTableListView.swift"; sourceTree = "<group>"; };
+		2000000000000027 /* PriceTableDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Rotas/Views/Products/PriceTableDetailView.swift"; sourceTree = "<group>"; };
 		2000000000000022 /* FinancialSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Rotas/Views/Financial/FinancialSummaryView.swift"; sourceTree = "<group>"; };
 		2000000000000023 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Rotas/Services/NotificationManager.swift"; sourceTree = "<group>"; };
 		2000000000000024 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Rotas/Services/HapticManager.swift"; sourceTree = "<group>"; };
@@ -99,6 +101,7 @@
 				2000000000000019 /* ProductCatalogView.swift */,
 				2000000000000020 /* AddProductView.swift */,
 				2000000000000021 /* PriceTableListView.swift */,
+				2000000000000027 /* PriceTableDetailView.swift */,
 				2000000000000022 /* FinancialSummaryView.swift */,
 				2000000000000023 /* NotificationManager.swift */,
 				2000000000000024 /* HapticManager.swift */,
@@ -206,6 +209,7 @@
 				1000000000000019 /* ProductCatalogView.swift in Sources */,
 				1000000000000020 /* AddProductView.swift in Sources */,
 				1000000000000021 /* PriceTableListView.swift in Sources */,
+				1000000000000027 /* PriceTableDetailView.swift in Sources */,
 				1000000000000022 /* FinancialSummaryView.swift in Sources */,
 				1000000000000023 /* NotificationManager.swift in Sources */,
 				1000000000000024 /* HapticManager.swift in Sources */,
