@@ -111,15 +111,15 @@ platform :ios do
             )
             UI.success("Created App on App Store Connect: #{app_obj.name}")
           rescue => e
-            UI.important("Could not create App with name 'Rotas': #{e.message}. Retrying with 'Rotas App'...")
-            app_obj = Spaceship::ConnectAPI::App.create(
-              name: "Rotas App",
-              primary_locale: "en-US",
-              sku: "com.wvrousseletp.Rotas",
-              bundle_id: b_id.id,
-              platforms: ["IOS"]
-            )
-            UI.success("Created App on App Store Connect: #{app_obj.name}")
+            UI.important("App Store Connect API Note: #{e.message}")
+            UI.user_error!("[AÇÃO NECESSÁRIA NA APP STORE CONNECT]\n" \
+              "A Apple exige que o primeiro registro do app no painel seja criado manualmente pela web (1 clique).\n" \
+              "1. Acesse: https://appstoreconnect.apple.com/apps\n" \
+              "2. Clique em '+' (Novo App)\n" \
+              "3. Escolha Plataforma: iOS | Nome: Rotas | Idioma: Português (ou Inglês)\n" \
+              "4. Selecione o Bundle ID já criado: com.wvrousseletp.Rotas | SKU: com.wvrousseletp.Rotas\n" \
+              "5. Clique em Criar.\n" \
+              "Assim que criado, todo build e upload para o TestFlight ocorrerá 100% automaticamente!")
           end
         else
           UI.message("App Rotas exists on App Store Connect: #{app_obj.name}")
