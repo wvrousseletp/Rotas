@@ -24,7 +24,7 @@ public struct AddClientStoreView: View {
         NavigationStack {
             Form {
                 Section(header: Text("Identificação do Ponto de Venda")) {
-                    TextField("Razão Social / Nome principal *", text: $name)
+                    TextField("Razão Social / Nome principal", text: $name)
                     TextField("Nome Fantasia (Opcional)", text: $tradeName)
                     Picker("Categoria", selection: $category) {
                         ForEach(StoreCategory.allCases) { cat in
@@ -33,7 +33,7 @@ public struct AddClientStoreView: View {
                     }
                 }
                 Section(header: Text("Endereço & Localização")) {
-                    TextField("Endereço completo *", text: $address)
+                    TextField("Endereço completo", text: $address)
                 }
                 Section(header: Text("Contato Comercial")) {
                     TextField("Nome do Gerente / Comprador", text: $contactName)
@@ -64,18 +64,20 @@ public struct AddClientStoreView: View {
                         saveStore()
                         dismiss()
                     }
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || address.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
         }
     }
     
     private func saveStore() {
+        let finalName = name.trimmingCharacters(in: .whitespaces).isEmpty ? "Novo Local" : name.trimmingCharacters(in: .whitespaces)
+        let finalAddress = address.trimmingCharacters(in: .whitespaces).isEmpty ? "Sem endereço cadastrado" : address.trimmingCharacters(in: .whitespaces)
+        
         let store = ClientStore(
-            name: name,
+            name: finalName,
             tradeName: tradeName.isEmpty ? nil : tradeName,
             category: category,
-            address: address,
+            address: finalAddress,
             contactName: contactName.isEmpty ? nil : contactName,
             contactPhone: contactPhone.isEmpty ? nil : contactPhone,
             preferredPriceTableID: selectedPriceTableID,
