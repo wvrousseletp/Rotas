@@ -10,6 +10,7 @@ public struct ProductCatalogView: View {
     
     @State private var searchText: String = ""
     @State private var showingAddProductSheet = false
+    @State private var selectedProductToEdit: Product?
     
     public init() {}
     
@@ -57,9 +58,12 @@ public struct ProductCatalogView: View {
                         }
                     }
                     
-                    Section(header: Text("Catálogo de Produtos")) {
+                    Section(header: Text("Catálogo de Produtos (Toque para Editar)")) {
                         ForEach(filteredProducts) { product in
-                            ProductRowView(product: product)
+                            Button(action: { selectedProductToEdit = product }) {
+                                ProductRowView(product: product)
+                            }
+                            .buttonStyle(.plain)
                         }
                         .onDelete(perform: deleteProducts)
                     }
@@ -77,6 +81,9 @@ public struct ProductCatalogView: View {
         }
         .sheet(isPresented: $showingAddProductSheet) {
             AddProductView()
+        }
+        .sheet(item: $selectedProductToEdit) { product in
+            AddProductView(productToEdit: product)
         }
     }
     

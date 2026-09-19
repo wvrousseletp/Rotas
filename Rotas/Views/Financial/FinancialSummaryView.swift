@@ -89,6 +89,7 @@ public struct FinancialSummaryView: View {
 struct PendingPaymentRowView: View {
     @Environment(\.modelContext) private var modelContext
     let record: VisitRecord
+    @State private var showingDeleteAlert = false
     
     var body: some View {
         HStack {
@@ -104,25 +105,46 @@ struct PendingPaymentRowView: View {
             Spacer()
             VStack(alignment: .trailing, spacing: 6) {
                 Text(record.totalAmount.formattedAsBRL()).font(.headline).foregroundColor(.orange)
-                Button(action: {
-                    record.isPaid = true
-                    try? modelContext.save()
-                    HapticManager.shared.notification(.success)
-                }) {
-                    Text("Dar Baixa")
-                        .font(.caption)
-                        .bold()
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 4)
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
+                
+                HStack(spacing: 8) {
+                    Button(action: {
+                        record.isPaid = true
+                        try? modelContext.save()
+                        HapticManager.shared.notification(.success)
+                    }) {
+                        Text("Dar Baixa")
+                            .font(.caption)
+                            .bold()
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                    }
+                    
+                    Button(action: { showingDeleteAlert = true }) {
+                        Image(systemName: "trash")
+                            .font(.caption)
+                            .foregroundColor(.red.opacity(0.8))
+                    }
+                    .buttonStyle(.plain)
+                    .help("Excluir registro de visita")
                 }
             }
         }
         .padding()
         .background(Color(UIColor.secondarySystemGroupedBackground))
         .cornerRadius(12)
+        .alert("Excluir Registro de Visita", isPresented: $showingDeleteAlert) {
+            Button("Excluir", role: .destructive) {
+                modelContext.delete(record)
+                try? modelContext.save()
+                HapticManager.shared.notification(.warning)
+            }
+            Button("Cancelar", role: .cancel) {}
+        } message: {
+            Text("Tem certeza de que deseja excluir este registro de atendimento?")
+        }
     }
 }
 #else

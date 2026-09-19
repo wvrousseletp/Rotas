@@ -9,13 +9,19 @@ public struct RouteDashboardView: View {
     @Query(sort: \Route.scheduledDate, order: .reverse) private var routes: [Route]
     @Query private var stores: [ClientStore]
     
+    @State private var selectedRouteID: UUID?
     @State private var selectedStopForVisit: RouteStop?
     @State private var showingCreateRouteSheet = false
+    @State private var routeToEdit: Route?
+    @State private var showingDeleteRouteAlert = false
     
     public init() {}
     
     private var activeRoute: Route? {
-        routes.first(where: { $0.status == .inProgress }) ?? routes.first
+        if let id = selectedRouteID, let found = routes.first(where: { $0.id == id }) {
+            return found
+        }
+        return routes.first(where: { $0.status == .inProgress }) ?? routes.first
     }
     
     public var body: some View {
@@ -33,7 +39,23 @@ public struct RouteDashboardView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            StatusBadgeView(status: route.status)
+                            HStack(spacing: 8) {
+                                StatusBadgeView(status: route.status)
+                                
+                                Menu {
+                                    Button(action: { routeToEdit = route }) {
+                                        Label("Editar Rota", systemImage: "pencil")
+                                    }
+                                    
+                                    Button(role: .destructive, action: { showingDeleteRouteAlert = true }) {
+                                        Label("Excluir Rota", systemImage: "trash")
+                                    }
+                                } label: {
+                                    Image(systemName: "ellipsis.circle.fill")
+                                        .font(.title2)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
                         }
                         
                         VStack(alignment: .leading, spacing: 6) {
@@ -55,20 +77,42 @@ public struct RouteDashboardView: View {
                     .cornerRadius(16)
                     
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Paradas da Rota")
-                            .font(.headline)
-                            .padding(.horizontal, 4)
+                        HStack {
+                            Text("Paradas da Rota")
+                                .font(.headline)
+                            Spacer()
+                            Text("\(route.sortedStops.count) ponto(s)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 4)
                         
                         if route.sortedStops.isEmpty {
-                            Text("Nenhuma parada adicionada nesta rota.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .padding()
+                            VStack(spacing: 8) {
+                                Text("Nenhuma parada nesta rota.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                Button("Editar Rota para Adicionar Locais") {
+                                    routeToEdit = route
+                                }
+                                .font(.caption)
+                                .bold()
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(UIColor.secondarySystemGroupedBackground))
+                            .cornerRadius(12)
                         } else {
                             ForEach(route.sortedStops) { stop in
-                                RouteStopRowView(stop: stop) {
-                                    selectedStopForVisit = stop
-                                }
+                                RouteStopRowView(
+                                    stop: stop,
+                                    onRecordVisit: {
+                                        selectedStopForVisit = stop
+                                    },
+                                    onRemoveStop: {
+                                        removeStop(stop, from: route)
+                                    }
+                                )
                             }
                         }
                     }
@@ -107,6 +151,25 @@ public struct RouteDashboardView: View {
         }
         .navigationTitle("Rota do Dia")
         .toolbar {
+            if routes.count > 1 {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Menu {
+                        ForEach(routes) { r in
+                            Button(action: { selectedRouteID = r.id }) {
+                                HStack {
+                                    Text(r.title)
+                                    if r.id == activeRoute?.id {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("Trocar Rota", systemImage: "line.3.horizontal.decrease.circle")
+                    }
+                }
+            }
+            
             ToolbarItem(placement: .primaryAction) {
                 Button(action: { showingCreateRouteSheet = true }) {
                     Image(systemName: "plus")
@@ -119,6 +182,32 @@ public struct RouteDashboardView: View {
         .sheet(isPresented: $showingCreateRouteSheet) {
             CreateRouteSheetView()
         }
+        .sheet(item: $routeToEdit) { route in
+            CreateRouteSheetView(routeToEdit: route)
+        }
+        .alert("Excluir Rota", isPresented: $showingDeleteRouteAlert) {
+            Button("Excluir", role: .destructive) {
+                if let route = activeRoute {
+                    deleteRoute(route)
+                }
+            }
+            Button("Cancelar", role: .cancel) {}
+        } message: {
+            Text("Tem certeza de que deseja excluir esta rota e suas paradas?")
+        }
+    }
+    
+    private func removeStop(_ stop: RouteStop, from route: Route) {
+        modelContext.delete(stop)
+        try? modelContext.save()
+        HapticManager.shared.notification(.warning)
+    }
+    
+    private func deleteRoute(_ route: Route) {
+        modelContext.delete(route)
+        try? modelContext.save()
+        selectedRouteID = nil
+        HapticManager.shared.notification(.warning)
     }
 }
 
@@ -151,6 +240,7 @@ struct StatusBadgeView: View {
 struct RouteStopRowView: View {
     let stop: RouteStop
     let onRecordVisit: () -> Void
+    let onRemoveStop: () -> Void
     
     var body: some View {
         HStack(spacing: 14) {
@@ -177,15 +267,25 @@ struct RouteStopRowView: View {
             
             Spacer()
             
-            Button(action: onRecordVisit) {
-                Text(stop.status == .visited ? "Editar" : "Atender")
-                    .font(.subheadline)
-                    .bold()
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color.accentColor.opacity(0.15))
-                    .foregroundColor(.accentColor)
-                    .cornerRadius(8)
+            HStack(spacing: 8) {
+                Button(action: onRecordVisit) {
+                    Text(stop.status == .visited ? "Editar" : "Atender")
+                        .font(.subheadline)
+                        .bold()
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.accentColor.opacity(0.15))
+                        .foregroundColor(.accentColor)
+                        .cornerRadius(8)
+                }
+                
+                Button(action: onRemoveStop) {
+                    Image(systemName: "trash")
+                        .font(.subheadline)
+                        .foregroundColor(.red.opacity(0.8))
+                }
+                .buttonStyle(.plain)
+                .help("Remover parada da rota")
             }
         }
         .padding()
@@ -209,9 +309,30 @@ struct CreateRouteSheetView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var stores: [ClientStore]
     
+    private let routeToEdit: Route?
+    
     @State private var title: String = ""
     @State private var scheduledDate: Date = Date()
+    @State private var status: RouteStatus = .inProgress
     @State private var selectedStoreIDs: Set<UUID> = []
+    @State private var showingDeleteAlert = false
+    
+    public init(routeToEdit: Route? = nil) {
+        self.routeToEdit = routeToEdit
+        _title = State(initialValue: routeToEdit?.title ?? "")
+        _scheduledDate = State(initialValue: routeToEdit?.scheduledDate ?? Date())
+        _status = State(initialValue: routeToEdit?.status ?? .inProgress)
+        
+        var initialSet = Set<UUID>()
+        if let stops = routeToEdit?.routeStops {
+            for stop in stops {
+                if let storeID = stop.store?.id {
+                    initialSet.insert(storeID)
+                }
+            }
+        }
+        _selectedStoreIDs = State(initialValue: initialSet)
+    }
     
     var body: some View {
         NavigationStack {
@@ -219,6 +340,11 @@ struct CreateRouteSheetView: View {
                 Section(header: Text("Detalhes da Rota")) {
                     TextField("Nome da Rota (ex: Rota Zona Sul)", text: $title)
                     DatePicker("Data Planejada", selection: $scheduledDate, displayedComponents: [.date])
+                    Picker("Status da Rota", selection: $status) {
+                        ForEach(RouteStatus.allCases) { st in
+                            Text(st.rawValue).tag(st)
+                        }
+                    }
                 }
                 
                 Section(header: Text("Selecionar Locais a Visitar")) {
@@ -249,39 +375,96 @@ struct CreateRouteSheetView: View {
                         }
                     }
                 }
+                
+                if routeToEdit != nil {
+                    Section {
+                        Button(role: .destructive, action: { showingDeleteAlert = true }) {
+                            HStack {
+                                Spacer()
+                                Label("Excluir Rota", systemImage: "trash.fill")
+                                Spacer()
+                            }
+                        }
+                    }
+                }
             }
-            .navigationTitle("Nova Rota")
+            .navigationTitle(routeToEdit == nil ? "Nova Rota" : "Editar Rota")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Criar") {
-                        createRoute()
+                    Button("Salvar") {
+                        saveRoute()
                         dismiss()
                     }
-                    .disabled(title.isEmpty || selectedStoreIDs.isEmpty)
+                    .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty || selectedStoreIDs.isEmpty)
                 }
+            }
+            .alert("Excluir Rota", isPresented: $showingDeleteAlert) {
+                Button("Excluir", role: .destructive) {
+                    deleteRoute()
+                    dismiss()
+                }
+                Button("Cancelar", role: .cancel) {}
+            } message: {
+                Text("Tem certeza de que deseja excluir esta rota?")
             }
         }
     }
     
-    private func createRoute() {
-        let newRoute = Route(title: title, scheduledDate: scheduledDate, status: .inProgress)
-        modelContext.insert(newRoute)
+    private func saveRoute() {
+        let finalTitle = title.trimmingCharacters(in: .whitespaces).isEmpty ? "Rota" : title.trimmingCharacters(in: .whitespaces)
         
-        var index = 0
-        for storeID in selectedStoreIDs {
-            if let store = stores.first(where: { $0.id == storeID }) {
-                let stop = RouteStop(orderIndex: index, status: .pending, store: store, route: newRoute)
-                modelContext.insert(stop)
-                index += 1
+        if let route = routeToEdit {
+            route.title = finalTitle
+            route.scheduledDate = scheduledDate
+            route.status = status
+            
+            // Remove stops for unselected stores
+            if let existingStops = route.routeStops {
+                for stop in existingStops {
+                    if let storeID = stop.store?.id, !selectedStoreIDs.contains(storeID) {
+                        modelContext.delete(stop)
+                    }
+                }
+            }
+            
+            // Add stops for newly selected stores
+            let existingStoreIDs = Set(route.routeStops?.compactMap { $0.store?.id } ?? [])
+            var nextIndex = route.routeStops?.count ?? 0
+            for storeID in selectedStoreIDs where !existingStoreIDs.contains(storeID) {
+                if let store = stores.first(where: { $0.id == storeID }) {
+                    let stop = RouteStop(orderIndex: nextIndex, status: .pending, store: store, route: route)
+                    modelContext.insert(stop)
+                    nextIndex += 1
+                }
+            }
+        } else {
+            let newRoute = Route(title: finalTitle, scheduledDate: scheduledDate, status: status)
+            modelContext.insert(newRoute)
+            
+            var index = 0
+            for storeID in selectedStoreIDs {
+                if let store = stores.first(where: { $0.id == storeID }) {
+                    let stop = RouteStop(orderIndex: index, status: .pending, store: store, route: newRoute)
+                    modelContext.insert(stop)
+                    index += 1
+                }
             }
         }
         
         try? modelContext.save()
         HapticManager.shared.notification(.success)
+    }
+    
+    private func deleteRoute() {
+        if let route = routeToEdit {
+            modelContext.delete(route)
+            try? modelContext.save()
+            HapticManager.shared.notification(.warning)
+        }
     }
 }
 #else

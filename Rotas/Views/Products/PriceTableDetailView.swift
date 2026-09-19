@@ -5,12 +5,14 @@ import SwiftData
 
 @available(iOS 17.0, *)
 public struct PriceTableDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Bindable var priceTable: PriceTable
     
     @Query(sort: \Product.name) private var allProducts: [Product]
     
     @State private var searchText: String = ""
+    @State private var showingDeleteAlert = false
     
     public init(priceTable: PriceTable) {
         self.priceTable = priceTable
@@ -62,10 +64,31 @@ public struct PriceTableDetailView: View {
                     }
                 }
             }
+            
+            Section {
+                Button(role: .destructive, action: { showingDeleteAlert = true }) {
+                    HStack {
+                        Spacer()
+                        Label("Excluir Tabela de Preço", systemImage: "trash.fill")
+                        Spacer()
+                    }
+                }
+            }
         }
         .searchable(text: $searchText, prompt: "Buscar produto por nome ou categoria...")
         .navigationTitle(priceTable.name.isEmpty ? "Tabela de Preço" : priceTable.name)
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Excluir Tabela de Preço", isPresented: $showingDeleteAlert) {
+            Button("Excluir", role: .destructive) {
+                modelContext.delete(priceTable)
+                try? modelContext.save()
+                HapticManager.shared.notification(.warning)
+                dismiss()
+            }
+            Button("Cancelar", role: .cancel) {}
+        } message: {
+            Text("Tem certeza de que deseja excluir a tabela '\(priceTable.name)'? Os locais vinculados retornarão para os preços base.")
+        }
     }
     
     private func saveCustomPrice(for product: Product, newPrice: Double) {
