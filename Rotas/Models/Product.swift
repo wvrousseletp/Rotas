@@ -23,7 +23,7 @@ public final class Product {
         name: String,
         sku: String? = nil,
         unit: String = "Unidade",
-        basePrice: Double,
+        basePrice: Double = 0.0,
         category: String = "Geral",
         isActive: Bool = true,
         createdAt: Date = Date()
@@ -44,7 +44,7 @@ public final class Product {
         if let custom = customPrices?.first(where: { $0.priceTable?.id == priceTable.id }) {
             return custom.customPrice
         }
-        if priceTable.discountPercentage > 0 {
+        if priceTable.discountPercentage > 0 && basePrice > 0 {
             return basePrice * (1.0 - (priceTable.discountPercentage / 100.0))
         }
         return basePrice

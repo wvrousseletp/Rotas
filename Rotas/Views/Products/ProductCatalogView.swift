@@ -103,12 +103,26 @@ private struct ProductRowView: View {
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
-                Text(product.basePrice.formattedAsBRL())
-                    .font(.headline)
-                    .foregroundColor(.green)
-                Text("por \(product.unit)")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                if product.basePrice > 0 {
+                    Text(product.basePrice.formattedAsBRL())
+                        .font(.headline)
+                        .foregroundColor(.green)
+                    Text("por \(product.unit)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("Preço por Tabela")
+                        .font(.caption2)
+                        .bold()
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(Color.blue.opacity(0.15))
+                        .foregroundColor(.blue)
+                        .clipShape(Capsule())
+                    Text("por \(product.unit)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
         }
     }

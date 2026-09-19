@@ -105,7 +105,7 @@ private struct ProductPriceRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(product.name)
                         .font(.headline)
-                    Text("Preço Base: \(product.basePrice.formattedAsBRL())")
+                    Text(product.basePrice > 0 ? "Preço Base: \(product.basePrice.formattedAsBRL())" : "Preço Base: Não informado")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -120,7 +120,7 @@ private struct ProductPriceRow: View {
                         .background(Color.green.opacity(0.2))
                         .foregroundColor(.green)
                         .clipShape(Capsule())
-                } else if priceTable.discountPercentage > 0 {
+                } else if priceTable.discountPercentage > 0 && product.basePrice > 0 {
                     Text("Desconto \(priceTable.discountPercentage, specifier: "%.0f")%")
                         .font(.caption2)
                         .padding(.horizontal, 6)
@@ -170,9 +170,11 @@ private struct ProductPriceRow: View {
     private func loadCurrentPrice() {
         if let custom = customEntry {
             priceText = String(format: "%.2f", custom.customPrice).replacingOccurrences(of: ".", with: ",")
-        } else {
+        } else if product.basePrice > 0 {
             let effective = product.price(for: priceTable)
             priceText = String(format: "%.2f", effective).replacingOccurrences(of: ".", with: ",")
+        } else {
+            priceText = ""
         }
     }
 }

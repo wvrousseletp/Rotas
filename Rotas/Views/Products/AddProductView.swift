@@ -22,16 +22,16 @@ public struct AddProductView: View {
         NavigationStack {
             Form {
                 Section(header: Text("Informações do Produto")) {
-                    TextField("Nome do Produto *", text: $name)
+                    TextField("Nome do Produto", text: $name)
                     TextField("SKU / Código (Opcional)", text: $sku)
                     TextField("Categoria", text: $category)
                 }
-                Section(header: Text("Precificação Base & Unidade")) {
-                    TextField("Preço Base (R$) *", text: $basePriceString)
-                        .keyboardType(.decimalPad)
+                Section(header: Text("Unidade & Preço Base (Opcional)")) {
                     Picker("Unidade de Medida", selection: $unit) {
                         ForEach(units, id: \.self) { u in Text(u).tag(u) }
                     }
+                    TextField("Preço Base R$ (Opcional)", text: $basePriceString)
+                        .keyboardType(.decimalPad)
                 }
             }
             .navigationTitle("Novo Produto")
@@ -45,7 +45,7 @@ public struct AddProductView: View {
                         saveProduct()
                         dismiss()
                     }
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || Double(basePriceString.replacingOccurrences(of: ",", with: ".")) == nil)
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
         }
@@ -53,8 +53,9 @@ public struct AddProductView: View {
     
     private func saveProduct() {
         let price = Double(basePriceString.replacingOccurrences(of: ",", with: ".")) ?? 0.0
+        let finalName = name.trimmingCharacters(in: .whitespaces).isEmpty ? "Novo Produto" : name.trimmingCharacters(in: .whitespaces)
         let product = Product(
-            name: name,
+            name: finalName,
             sku: sku.isEmpty ? nil : sku,
             unit: unit,
             basePrice: price,

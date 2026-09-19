@@ -192,14 +192,20 @@ private struct ProductQuantityRowView: View {
             VStack(alignment: .leading) {
                 Text(product.name).font(.body)
                 HStack(spacing: 4) {
-                    Text(effectivePrice.formattedAsBRL() + " / " + product.unit)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if effectivePrice != product.basePrice {
-                        Text("(De: \(product.basePrice.formattedAsBRL()))")
-                            .font(.caption2)
-                            .strikethrough()
-                            .foregroundColor(.gray)
+                    if effectivePrice > 0 {
+                        Text(effectivePrice.formattedAsBRL() + " / " + product.unit)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        if effectivePrice != product.basePrice && product.basePrice > 0 {
+                            Text("(De: \(product.basePrice.formattedAsBRL()))")
+                                .font(.caption2)
+                                .strikethrough()
+                                .foregroundColor(.gray)
+                        }
+                    } else {
+                        Text("Sem preço (" + product.unit + ")")
+                            .font(.caption)
+                            .foregroundColor(.orange)
                     }
                 }
             }
