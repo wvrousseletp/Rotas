@@ -59,23 +59,7 @@ public struct ProductCatalogView: View {
                     
                     Section(header: Text("Catálogo de Produtos")) {
                         ForEach(filteredProducts) { product in
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(product.name).font(.headline)
-                                    if let sku = product.sku {
-                                        Text("SKU: \(sku)").font(.caption2).foregroundColor(.secondary)
-                                    }
-                                }
-                                Spacer()
-                                VStack(alignment: .trailing, spacing: 2) {
-                                    Text(product.basePrice.formattedAsBRL())
-                                        .font(.headline)
-                                        .foregroundColor(.green)
-                                    Text("por \(product.unit)")
-                                        .font(.caption2)
-                                        .foregroundColor(.secondary)
-                                }
-                            }
+                            ProductRowView(product: product)
                         }
                         .onDelete(perform: deleteProducts)
                     }
@@ -102,6 +86,31 @@ public struct ProductCatalogView: View {
             modelContext.delete(product)
         }
         try? modelContext.save()
+    }
+}
+
+@available(iOS 17.0, *)
+private struct ProductRowView: View {
+    let product: Product
+    
+    var body: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(product.name).font(.headline)
+                if let sku = product.sku {
+                    Text("SKU: \(sku)").font(.caption2).foregroundColor(.secondary)
+                }
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(product.basePrice.formattedAsBRL())
+                    .font(.headline)
+                    .foregroundColor(.green)
+                Text("por \(product.unit)")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
     }
 }
 #else

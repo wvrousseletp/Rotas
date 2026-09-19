@@ -74,53 +74,23 @@ public struct RecordVisitSheetView: View {
                             .foregroundColor(.secondary)
                     } else {
                         ForEach(availableProducts) { product in
-                            let effectivePrice = product.price(for: storePriceTable)
-                            HStack {
-                                VStack(alignment: .leading) {
-                                    Text(product.name).font(.body)
-                                    HStack(spacing: 4) {
-                                        Text(effectivePrice.formattedAsBRL() + " / " + product.unit)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                        if effectivePrice != product.basePrice {
-                                            Text("(De: \(product.basePrice.formattedAsBRL()))")
-                                                .font(.caption2)
-                                                .strikethrough()
-                                                .foregroundColor(.gray)
-                                        }
-                                    }
-                                }
-                                Spacer()
-                                HStack(spacing: 12) {
-                                    Button(action: {
-                                        let current = productQuantities[product.id] ?? 0
-                                        if current > 0 {
-                                            productQuantities[product.id] = current - 1
-                                            HapticManager.shared.impact(.light)
-                                        }
-                                    }) {
-                                        Image(systemName: "minus.circle.fill")
-                                            .font(.title3)
-                                            .foregroundColor(.red)
-                                    }
-                                    .buttonStyle(.plain)
-                                    
-                                    Text("\(productQuantities[product.id] ?? 0)")
-                                        .font(.headline)
-                                        .frame(minWidth: 24)
-                                    
-                                    Button(action: {
-                                        let current = productQuantities[product.id] ?? 0
-                                        productQuantities[product.id] = current + 1
+                            ProductQuantityRowView(
+                                product: product,
+                                storePriceTable: storePriceTable,
+                                quantity: productQuantities[product.id] ?? 0,
+                                onIncrement: {
+                                    let current = productQuantities[product.id] ?? 0
+                                    productQuantities[product.id] = current + 1
+                                    HapticManager.shared.impact(.light)
+                                },
+                                onDecrement: {
+                                    let current = productQuantities[product.id] ?? 0
+                                    if current > 0 {
+                                        productQuantities[product.id] = current - 1
                                         HapticManager.shared.impact(.light)
-                                    }) {
-                                        Image(systemName: "plus.circle.fill")
-                                            .font(.title3)
-                                            .foregroundColor(.green)
                                     }
-                                    .buttonStyle(.plain)
                                 }
-                            }
+                            )
                         }
                     }
                 }
@@ -204,6 +174,56 @@ public struct RecordVisitSheetView: View {
         
         try? modelContext.save()
         HapticManager.shared.notification(.success)
+    }
+}
+
+@available(iOS 17.0, *)
+private struct ProductQuantityRowView: View {
+    let product: Product
+    let storePriceTable: PriceTable?
+    let quantity: Int
+    let onIncrement: () -> Void
+    let onDecrement: () -> Void
+    
+    var body: some View {
+        let effectivePrice = product.price(for: storePriceTable)
+        
+        HStack {
+            VStack(alignment: .leading) {
+                Text(product.name).font(.body)
+                HStack(spacing: 4) {
+                    Text(effectivePrice.formattedAsBRL() + " / " + product.unit)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    if effectivePrice != product.basePrice {
+                        Text("(De: \(product.basePrice.formattedAsBRL()))")
+                            .font(.caption2)
+                            .strikethrough()
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            Spacer()
+            HStack(spacing: 12) {
+                Button(action: onDecrement) {
+                    Image(systemName: "minus.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
+                
+                Text("\(quantity)")
+                    .font(.headline)
+                    .frame(minWidth: 24)
+                
+                Button(action: onIncrement) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.green)
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 }
 #endif

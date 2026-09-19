@@ -51,22 +51,7 @@ public struct ClientStoreListView: View {
                 List {
                     ForEach(filteredStores) { store in
                         NavigationLink(destination: ClientStoreDetailView(store: store)) {
-                            HStack(spacing: 14) {
-                                Image(systemName: store.category.iconName)
-                                    .font(.title2)
-                                    .foregroundColor(.accentColor)
-                                    .frame(width: 36, height: 36)
-                                    .background(Color.accentColor.opacity(0.15))
-                                    .clipShape(Circle())
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(store.name).font(.headline)
-                                    Text(store.address).font(.caption).foregroundColor(.secondary).lineLimit(1)
-                                    if let contact = store.contactName {
-                                        Text("Contato: \(contact)").font(.caption2).foregroundColor(.blue)
-                                    }
-                                }
-                            }
+                            StoreRowView(store: store)
                         }
                     }
                     .onDelete(perform: deleteStores)
@@ -93,6 +78,30 @@ public struct ClientStoreListView: View {
             modelContext.delete(store)
         }
         try? modelContext.save()
+    }
+}
+
+@available(iOS 17.0, *)
+private struct StoreRowView: View {
+    let store: ClientStore
+    
+    var body: some View {
+        HStack(spacing: 14) {
+            Image(systemName: store.category.iconName)
+                .font(.title2)
+                .foregroundColor(.accentColor)
+                .frame(width: 36, height: 36)
+                .background(Color.accentColor.opacity(0.15))
+                .clipShape(Circle())
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(store.name).font(.headline)
+                Text(store.address).font(.caption).foregroundColor(.secondary).lineLimit(1)
+                if let contact = store.contactName, !contact.isEmpty {
+                    Text("Contato: \(contact)").font(.caption2).foregroundColor(.blue)
+                }
+            }
+        }
     }
 }
 #else
