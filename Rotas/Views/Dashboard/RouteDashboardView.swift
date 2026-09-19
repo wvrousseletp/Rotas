@@ -324,7 +324,7 @@ struct CreateRouteSheetView: View {
         _status = State(initialValue: routeToEdit?.status ?? .inProgress)
         
         var initialSet = Set<UUID>()
-        if let stops = routeToEdit?.routeStops {
+        if let stops = routeToEdit?.stops {
             for stop in stops {
                 if let storeID = stop.store?.id {
                     initialSet.insert(storeID)
@@ -423,7 +423,7 @@ struct CreateRouteSheetView: View {
             route.status = status
             
             // Remove stops for unselected stores
-            if let existingStops = route.routeStops {
+            if let existingStops = route.stops {
                 for stop in existingStops {
                     if let storeID = stop.store?.id, !selectedStoreIDs.contains(storeID) {
                         modelContext.delete(stop)
@@ -432,8 +432,8 @@ struct CreateRouteSheetView: View {
             }
             
             // Add stops for newly selected stores
-            let existingStoreIDs = Set(route.routeStops?.compactMap { $0.store?.id } ?? [])
-            var nextIndex = route.routeStops?.count ?? 0
+            let existingStoreIDs = Set(route.stops?.compactMap { $0.store?.id } ?? [])
+            var nextIndex = route.stops?.count ?? 0
             for storeID in selectedStoreIDs where !existingStoreIDs.contains(storeID) {
                 if let store = stores.first(where: { $0.id == storeID }) {
                     let stop = RouteStop(orderIndex: nextIndex, status: .pending, store: store, route: route)
