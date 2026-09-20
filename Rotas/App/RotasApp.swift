@@ -20,7 +20,7 @@ struct RotasApp: App {
                 VisitRecord.self,
                 TransactionItem.self
             ])
-            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .automatic)
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
             container = try ModelContainer(for: schema, configurations: [config])
         } catch {
             fatalError("Failed to initialize SwiftData ModelContainer: \(error.localizedDescription)")
