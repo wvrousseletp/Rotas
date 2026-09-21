@@ -139,8 +139,19 @@ platform :ios do
             p_bid == b_id.id && p.profile_type.to_s.include?("APP_STORE")
           end
 
+          if prof
+            UI.important("Found existing Provisioning Profile (#{prof.name} - #{prof.uuid}). Deleting it to force Apple Developer Portal to regenerate it with all newly activated capabilities (CloudKit/iCloud)...")
+            begin
+              prof.delete!
+              UI.success("Successfully deleted old Provisioning Profile.")
+            rescue => e
+              UI.error("Could not delete old profile: #{e.message}")
+            end
+            prof = nil
+          end
+
           if prof.nil?
-            UI.message("Creating App Store Provisioning Profile for com.wvrousseletp.Rotas...")
+            UI.message("Creating fresh App Store Provisioning Profile for com.wvrousseletp.Rotas...")
             res_prof = Spaceship::ConnectAPI::Profile.create(
               name: "Rotas AppStore Profile",
               profile_type: "IOS_APP_STORE",
@@ -149,8 +160,6 @@ platform :ios do
             )
             prof = res_prof.respond_to?(:to_models) ? res_prof.to_models.first : res_prof
             UI.success("Created Provisioning Profile: #{prof.name} (#{prof.uuid})")
-          else
-            UI.message("Provisioning Profile found: #{prof.name} (#{prof.uuid})")
           end
 
           if prof && prof.profile_content
@@ -172,7 +181,8 @@ platform :ios do
       get_provisioning_profile(
         api_key: api_key,
         app_identifier: "com.wvrousseletp.Rotas",
-        development: false
+        development: false,
+        force: true
       )
     rescue => e
       UI.error("sigh fallback note: #{e.message}")
