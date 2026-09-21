@@ -92,6 +92,23 @@ platform :ios do
       UI.success("Using Bundle ID: #{b_id.identifier} (#{b_id.id})")
 
       begin
+        UI.message("Ensuring iCloud capability on Bundle ID...")
+        Spaceship::ConnectAPI::BundleIdCapability.create(
+          bundle_id_id: b_id.id,
+          capability_type: "ICLOUD",
+          settings: [
+            {
+              key: "ICLOUD_VERSION",
+              options: [{ key: "XCODE_12" }]
+            }
+          ]
+        )
+        UI.success("iCloud capability ensured on Bundle ID.")
+      rescue => e
+        UI.important("BundleIdCapability note: #{e.message}")
+      end
+
+      begin
         apps = Spaceship::ConnectAPI::App.all
         app_obj = apps.find do |a|
           bid_id = a.bundle_id.respond_to?(:id) ? a.bundle_id.id : a.bundle_id.to_s
