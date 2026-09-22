@@ -32,13 +32,13 @@ import SwiftData
 @available(iOS 17.0, *)
 @Model
 public final class VisitRecord {
-    public var id: UUID
-    public var timestamp: Date
-    public var managerStatusRaw: String
-    public var paymentMethodRaw: String
-    public var paymentTermDays: Int
+    public var id: UUID = UUID()
+    public var timestamp: Date = Date()
+    public var managerStatusRaw: String = ManagerStatus.spokenWithManager.rawValue
+    public var paymentMethodRaw: String = PaymentMethod.pix.rawValue
+    public var paymentTermDays: Int = 0
     public var paymentDueDate: Date?
-    public var isPaid: Bool
+    public var isPaid: Bool = false
     public var notes: String?
     
     @Relationship(deleteRule: .cascade, inverse: \TransactionItem.visitRecord)

@@ -15,11 +15,11 @@ import SwiftData
 @available(iOS 17.0, *)
 @Model
 public final class Route {
-    public var id: UUID
-    public var title: String
-    public var scheduledDate: Date
-    public var statusRaw: String
-    public var createdAt: Date
+    public var id: UUID = UUID()
+    public var title: String = ""
+    public var scheduledDate: Date = Date()
+    public var statusRaw: String = RouteStatus.planned.rawValue
+    public var createdAt: Date = Date()
     
     @Relationship(deleteRule: .cascade, inverse: \RouteStop.route)
     public var stops: [RouteStop]?

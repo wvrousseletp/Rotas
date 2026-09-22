@@ -24,9 +24,9 @@ import SwiftData
 @available(iOS 17.0, *)
 @Model
 public final class RouteStop {
-    public var id: UUID
-    public var orderIndex: Int
-    public var statusRaw: String
+    public var id: UUID = UUID()
+    public var orderIndex: Int = 0
+    public var statusRaw: String = StopStatus.pending.rawValue
     public var visitedAt: Date?
     public var notes: String?
     

@@ -29,18 +29,18 @@ import SwiftData
 @available(iOS 17.0, *)
 @Model
 public final class ClientStore {
-    public var id: UUID
-    public var name: String
+    public var id: UUID = UUID()
+    public var name: String = ""
     public var tradeName: String?
-    public var categoryRaw: String
-    public var address: String
+    public var categoryRaw: String = StoreCategory.supermarket.rawValue
+    public var address: String = ""
     public var latitude: Double?
     public var longitude: Double?
     public var contactName: String?
     public var contactPhone: String?
     public var preferredPriceTableID: UUID?
     public var notes: String?
-    public var createdAt: Date
+    public var createdAt: Date = Date()
     
     @Relationship(deleteRule: .cascade, inverse: \RouteStop.store)
     public var routeStops: [RouteStop]?

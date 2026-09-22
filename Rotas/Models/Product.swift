@@ -6,14 +6,14 @@ import SwiftData
 @available(iOS 17.0, *)
 @Model
 public final class Product {
-    public var id: UUID
-    public var name: String
+    public var id: UUID = UUID()
+    public var name: String = ""
     public var sku: String?
-    public var unit: String
-    public var basePrice: Double
-    public var category: String
-    public var isActive: Bool
-    public var createdAt: Date
+    public var unit: String = "Unidade"
+    public var basePrice: Double = 0.0
+    public var category: String = "Geral"
+    public var isActive: Bool = true
+    public var createdAt: Date = Date()
     
     @Relationship(deleteRule: .cascade, inverse: \ProductPriceTable.product)
     public var customPrices: [ProductPriceTable]?

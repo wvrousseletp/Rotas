@@ -22,10 +22,10 @@ import SwiftData
 @available(iOS 17.0, *)
 @Model
 public final class TransactionItem {
-    public var id: UUID
-    public var itemTypeRaw: String
-    public var quantity: Int
-    public var unitPrice: Double
+    public var id: UUID = UUID()
+    public var itemTypeRaw: String = TransactionType.sale.rawValue
+    public var quantity: Int = 1
+    public var unitPrice: Double = 0.0
     
     @Relationship
     public var product: Product?
